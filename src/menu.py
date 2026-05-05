@@ -1,4 +1,5 @@
 import pygame
+from src.level import ALL_LEVELS
 
 
 class Menu:
@@ -200,25 +201,38 @@ class SettingsMenu:
 class GameOverScreen:
     """Obrazovka konce hry (prohra nebo výhra)."""
 
-    def __init__(self, screen_w, screen_h, font, won: bool):
+    def __init__(self, screen_w, screen_h, font, won: bool, has_next_level: bool = False):
         self.screen_w = screen_w
         self.screen_h = screen_h
         self.font = font
         self.title_font = pygame.font.SysFont("Arial", 52, bold=True)
         self.won = won
-        self.action = None
+        self.has_next_level = has_next_level  # ← NOVÉ: je další level?
+        self.action = None  # "menu" | "restart" | "next"
 
         cx = screen_w // 2
-        self.btn_menu    = pygame.Rect(cx - 110, screen_h // 2 + 60, 220, 55)
-        self.btn_restart = pygame.Rect(cx - 110, screen_h // 2 - 10, 220, 55)
+        cy = screen_h // 2
+
+        if won and has_next_level:
+            # 3 tlačítka: Další level, Znovu, Menu
+            self.btn_next    = pygame.Rect(cx - 110, cy - 80, 220, 55)
+            self.btn_restart = pygame.Rect(cx - 110, cy - 10, 220, 55)
+            self.btn_menu    = pygame.Rect(cx - 110, cy + 60, 220, 55)
+        else:
+            # 2 tlačítka: Znovu, Menu
+            self.btn_next    = None
+            self.btn_restart = pygame.Rect(cx - 110, cy - 10, 220, 55)
+            self.btn_menu    = pygame.Rect(cx - 110, cy + 60, 220, 55)
 
     def handle_event(self, event):
         self.action = None
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if self.btn_menu.collidepoint(event.pos):
-                self.action = "menu"
-            if self.btn_restart.collidepoint(event.pos):
+            if self.btn_next and self.btn_next.collidepoint(event.pos):
+                self.action = "next"
+            elif self.btn_restart.collidepoint(event.pos):
                 self.action = "restart"
+            elif self.btn_menu.collidepoint(event.pos):
+                self.action = "menu"
 
     def draw(self, surface):
         overlay = pygame.Surface((self.screen_w, self.screen_h), pygame.SRCALPHA)
@@ -229,12 +243,23 @@ class GameOverScreen:
         label = "Výhra! 🏆" if self.won else "Prohra! 💀"
         title = self.title_font.render(label, True, color)
         surface.blit(title, (self.screen_w // 2 - title.get_width() // 2,
-                              self.screen_h // 2 - 120))
+                              self.screen_h // 2 - 150))
 
-        for btn, lbl in [(self.btn_restart, "↺  Znovu"), (self.btn_menu, "⌂  Menu")]:
-            hover = btn.collidepoint(pygame.mouse.get_pos())
-            pygame.draw.rect(surface, (60, 60, 60) if hover else (35, 35, 35), btn, border_radius=10)
-            pygame.draw.rect(surface, (150, 150, 150), btn, 2, border_radius=10)
-            t = self.font.render(lbl, True, (230, 230, 230))
-            surface.blit(t, (btn.x + btn.w // 2 - t.get_width() // 2,
-                             btn.y + btn.h // 2 - t.get_height() // 2))
+        # Tlačítko Další level (jen při výhře s dalším levelem)
+        if self.btn_next:
+            self._draw_btn(surface, self.btn_next, "▶▶  Další level",
+                           hover_color=(50, 150, 50), base_color=(30, 100, 30),
+                           border_color=(100, 220, 100), text_color=(200, 255, 200))
+
+        self._draw_btn(surface, self.btn_restart, "↺  Znovu")
+        self._draw_btn(surface, self.btn_menu,    "⌂  Menu")
+
+    def _draw_btn(self, surface, rect, label,
+                  hover_color=(60, 60, 60), base_color=(35, 35, 35),
+                  border_color=(150, 150, 150), text_color=(230, 230, 230)):
+        hover = rect.collidepoint(pygame.mouse.get_pos())
+        pygame.draw.rect(surface, hover_color if hover else base_color, rect, border_radius=10)
+        pygame.draw.rect(surface, border_color, rect, 2, border_radius=10)
+        t = self.font.render(label, True, text_color)
+        surface.blit(t, (rect.x + rect.w // 2 - t.get_width() // 2,
+                         rect.y + rect.h // 2 - t.get_height() // 2))

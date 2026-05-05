@@ -6,6 +6,8 @@ from src.entities.tower import ArrowTower, CannonTower, FreezeTower
 from src.entities.enemy import BasicEnemy, FastEnemy, TankEnemy, FlyingEnemy, BossEnemy
 from src.ui.hud import HUD
 from src.menu import PauseMenu, GameOverScreen
+from src.effects import EffectManager
+from src.skins import get_skin
 
 
 TOWER_CLASSES = [ArrowTower, CannonTower, FreezeTower]
@@ -30,7 +32,8 @@ class Game:
         self.screen = screen
         self.screen_w, self.screen_h = screen.get_size()
         self.settings = settings
-        self.skin = skin
+        self.skin_id = skin
+        self.skin_data = get_skin(skin)  # ← načti skin data
         self.level_data = ALL_LEVELS[level_idx]
         self.level_idx = level_idx
 
@@ -42,6 +45,7 @@ class Game:
         self.hud = HUD(self.screen_w, self.screen_h, self.font)
         self.pause_menu = PauseMenu(self.screen_w, self.screen_h, self.font)
         self.game_over_screen = None
+        self.effects = EffectManager()
 
         self.state = "playing"   # "playing" | "paused" | "gameover"
         self.selected_tower_idx = 0
@@ -52,24 +56,31 @@ class Game:
     # ------------------------------------------------------------------
     def _load_level(self):
         ld = self.level_data
+        sd = self.skin_data
+
         self.lives = ld["lives"]
         self.gold  = ld["start_gold"]
-        self.bg_color   = ld["bg_color"]
-        self.path_color = ld["path_color"]
+
+        # ← OPRAVENO: barvy vždy ze skinu, ne z levelu
+        self.bg_color   = sd["bg"]
+        self.path_color = sd["path"]
+        self.path_edge_color = sd["path_edge"]
+        self.wall_color = sd["wall"]
+
         self.grid  = ld["grid"]
         self.rows  = ld["rows"]
         self.cols  = ld["cols"]
         self.path_px = build_path_pixels(ld["path_cells"])
         self.path_cells_set = set(map(tuple, ld["path_cells"]))
 
-        self.towers: list     = []
-        self.enemies: list    = []
-        self.projectiles: list= []
+        self.towers: list      = []
+        self.enemies: list     = []
+        self.projectiles: list = []
 
         self.waves = ld["waves"]
-        self.current_wave = 0       # index příští vlny (0 = žádná nezačala)
+        self.current_wave = 0
         self.wave_active  = False
-        self.spawn_queue  = []      # [(EnemyCls, timer_remaining)]
+        self.spawn_queue  = []
         self.spawn_timer  = 0.0
 
     # ------------------------------------------------------------------
@@ -89,6 +100,17 @@ class Game:
             if self.state == "playing":
                 self._update(dt)
 
+            # Výhra levelu → čekáme na akci hráče
+            if (self.state == "gameover"
+                    and self.game_over_screen
+                    and self.game_over_screen.won):
+                if self.game_over_screen.action == "next":
+                    return "next_level"
+                elif self.game_over_screen.action == "menu":
+                    return "menu"
+                elif self.game_over_screen.action == "restart":
+                    return f"level_{self.level_idx}"
+
             self._draw()
             pygame.display.flip()
 
@@ -102,6 +124,8 @@ class Game:
                 return "menu"
             if self.game_over_screen.action == "restart":
                 return f"level_{self.level_idx}"
+            if self.game_over_screen.action == "next":
+                return "next_level"
             return None
 
         if self.state == "paused":
@@ -126,7 +150,6 @@ class Game:
         if event.type == pygame.MOUSEBUTTONDOWN:
             pos = event.pos
 
-            # HUD kliknutí
             clicked = self.hud.get_clicked_tower(pos)
             if clicked is not None:
                 self.selected_tower_idx = clicked
@@ -138,7 +161,6 @@ class Game:
                 self._start_next_wave()
                 return None
 
-            # Kliknutí do mapy – stavba věže
             if pos[1] < self.screen_h - HUD.PANEL_H:
                 col = pos[0] // CELL
                 row = pos[1] // CELL
@@ -158,18 +180,14 @@ class Game:
     # Stavba věže
     # ------------------------------------------------------------------
     def _try_place_tower(self, col, row):
-        # Mimo mřížku?
         if col >= self.cols or row >= self.rows:
             return
-        # Cesta?
         if (col, row) in self.path_cells_set:
             self._show_gold_msg("Nelze stavět na cestě!")
             return
-        # Zeď?
         if row < len(self.grid) and col < len(self.grid[row]) and self.grid[row][col] == '#':
             self._show_gold_msg("Nelze stavět zde!")
             return
-        # Obsazeno?
         for t in self.towers:
             if int(t.x // CELL) == col and int(t.y // CELL) == row:
                 self._show_gold_msg("Pole je obsazené!")
@@ -184,6 +202,7 @@ class Game:
         tower = cls(col * CELL, row * CELL, CELL)
         self.towers.append(tower)
         self.gold -= cost
+        self.effects.spawn_place(col * CELL + CELL // 2, row * CELL + CELL // 2)
 
     def _show_gold_msg(self, msg):
         self.gold_msg = msg
@@ -199,15 +218,12 @@ class Game:
         wave = self.waves[self.current_wave]
         self.current_wave += 1
 
-        # Sestaví frontu nepřátel
         self.spawn_queue = []
         for enemy_cls, count, interval in wave:
             for i in range(count):
                 self.spawn_queue.append((enemy_cls, i * interval))
 
-        # Seřaď dle času spawnu
         self.spawn_queue.sort(key=lambda x: x[1])
-        # Převeď na delta časy
         prev = 0
         for i in range(len(self.spawn_queue)):
             cls, t = self.spawn_queue[i]
@@ -224,23 +240,20 @@ class Game:
             cls, delay = self.spawn_queue.pop(0)
             self.spawn_timer -= delay
             sx, sy = self.path_px[0]
-            enemy = cls(sx - 16, sy - 16, self.path_px, self.skin)
+            enemy = cls(sx - 16, sy - 16, self.path_px, self.skin_id)
             self.enemies.append(enemy)
 
     # ------------------------------------------------------------------
     # Update
     # ------------------------------------------------------------------
     def _update(self, dt):
-        # Gold message timer
         if self.gold_msg_timer > 0:
             self.gold_msg_timer -= dt
             if self.gold_msg_timer <= 0:
                 self.gold_msg = ""
 
-        # Spawn
         self._update_spawning(dt)
 
-        # Nepřátelé
         for enemy in self.enemies:
             if enemy.alive:
                 enemy.update(dt)
@@ -248,49 +261,49 @@ class Game:
                     self.lives -= 1
                     enemy.destroy()
 
-        # Odměny za zabití
         for enemy in self.enemies:
             if not enemy.alive and enemy.reward > 0:
                 self.gold += enemy.reward
-                enemy.reward = 0  # jen jednou
+                self.effects.spawn_gold(enemy.x, enemy.y, enemy.reward)
+                enemy.reward = 0
 
         self.enemies = [e for e in self.enemies if e.alive]
 
-        # Věže
         for tower in self.towers:
             tower.update(dt, self.enemies, self.projectiles)
 
-        # Střely
         for proj in self.projectiles:
             if proj.alive:
                 proj.update(dt)
         self.projectiles = [p for p in self.projectiles if p.alive]
 
-        # Vlna dokončena?
         if self.wave_active and not self.spawn_queue and not self.enemies:
             self.wave_active = False
-            self.gold += 25  # bonus za vlnu
+            self.gold += 25
 
-        # Konec hry
+        # Prohra
         if self.lives <= 0:
             self.state = "gameover"
-            self.game_over_screen = GameOverScreen(self.screen_w, self.screen_h, self.font, won=False)
-        elif self.current_wave >= len(self.waves) and not self.wave_active and not self.enemies:
-            # Přechod na další level?
-            if self.level_idx + 1 < len(ALL_LEVELS):
-                return  # game.run() vrátí "next_level" níže
-            else:
-                self.state = "gameover"
-                self.game_over_screen = GameOverScreen(self.screen_w, self.screen_h, self.font, won=True)
+            self.game_over_screen = GameOverScreen(
+                self.screen_w, self.screen_h, self.font,
+                won=False, has_next_level=False
+            )
+            return
 
-        # Výhra levelu (přechod)
+        # Výhra levelu
         if (self.current_wave >= len(self.waves)
                 and not self.wave_active
                 and not self.enemies
-                and self.lives > 0
-                and self.level_idx + 1 < len(ALL_LEVELS)):
+                and self.lives > 0):
+            has_next = self.level_idx + 1 < len(ALL_LEVELS)
             self.state = "gameover"
-            self.game_over_screen = GameOverScreen(self.screen_w, self.screen_h, self.font, won=True)
+            self.game_over_screen = GameOverScreen(
+                self.screen_w, self.screen_h, self.font,
+                won=True, has_next_level=has_next  # ← předá info o dalším levelu
+            )
+            return
+
+        self.effects.update(dt)
 
     # ------------------------------------------------------------------
     # Kreslení
@@ -307,6 +320,8 @@ class Game:
             e.draw(self.screen)
         for p in self.projectiles:
             p.draw(self.screen)
+
+        self.effects.draw(self.screen)
 
         self.hud.draw(
             self.screen,
@@ -331,17 +346,14 @@ class Game:
                     continue
                 ch = self.grid[row][col] if row < len(self.grid) and col < len(self.grid[row]) else '.'
                 if ch == '#':
-                    pygame.draw.rect(self.screen, (40, 40, 40), rect)
-                pygame.draw.rect(self.screen, (0, 0, 0, 40), rect, 1)
+                    pygame.draw.rect(self.screen, self.wall_color, rect)  # ← skin barva
+                pygame.draw.rect(self.screen, self.skin_data["grid_line"], rect, 1)  # ← skin barva
 
     def _draw_path(self):
         if len(self.path_px) < 2:
             return
         pygame.draw.lines(self.screen, self.path_color, False, self.path_px, CELL - 6)
-        pygame.draw.lines(self.screen, (min(255, self.path_color[0] + 40),
-                                        min(255, self.path_color[1] + 40),
-                                        min(255, self.path_color[2] + 40)),
-                          False, self.path_px, 2)
+        pygame.draw.lines(self.screen, self.path_edge_color, False, self.path_px, 2)  # ← skin barva
 
     def _draw_hover(self):
         if not self.hover_cell:
@@ -356,7 +368,6 @@ class Game:
         hover_surf.fill(color)
         self.screen.blit(hover_surf, rect.topleft)
 
-        # Ukáž dosah
         cls = TOWER_CLASSES[self.selected_tower_idx]
         dummy = cls(col * CELL, row * CELL, CELL)
         dummy.draw_range(self.screen)
