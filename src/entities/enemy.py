@@ -36,6 +36,8 @@ class Enemy(Entity):
         self.max_hp = 100
         self.hp = self.max_hp
         self.reward = 10
+        self.width = 52
+        self.height = 52
         self.skin = skin
         self.slow_timer = 0.0
         self.color = (200, 50, 50)   # fallback barva

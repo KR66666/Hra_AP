@@ -66,39 +66,52 @@ class SkinSelector:
                 self.confirmed = True
 
     def draw(self, surface: pygame.Surface):
-        surface.fill((20, 20, 40))
+        # levandulové pozadí
+        surface.fill((230, 210, 245))
 
-        title = self.title_font.render("Vyber si skin", True, (220, 200, 100))
+        title = self.title_font.render("Vyber si režim", True, (220, 200, 100))
         surface.blit(title, (self.screen_w // 2 - title.get_width() // 2, 50))
 
         for i, (skin, rect) in enumerate(zip(self.SKINS, self.card_rects)):
             border_color = (255, 220, 0) if i == self.selected else (80, 80, 100)
-            bg_color = (55, 55, 80) if i == self.selected else (40, 40, 60)
+
+            # hnědé karty
+            bg_color = (160, 120, 90) if i == self.selected else (130, 95, 70)
+
             pygame.draw.rect(surface, bg_color, rect, border_radius=12)
             pygame.draw.rect(surface, border_color, rect, 3, border_radius=12)
 
-            # Náhled barev věží
+            # náhled barev
             for j, color in enumerate(skin["preview_colors"]):
                 cr = pygame.Rect(rect.x + 20 + j * 62, rect.y + 20, 50, 50)
                 pygame.draw.rect(surface, color, cr, border_radius=8)
 
-            name_t = self.font.render(skin["name"], True, (230, 230, 230))
-            desc_t = self.small_font.render(skin["desc"], True, (160, 160, 180))
+            name_t = self.font.render(skin["name"], True, (255, 255, 255))
+            desc_t = self.small_font.render(skin["desc"], True, (255, 255, 255))
+
             surface.blit(name_t, (rect.x + rect.w // 2 - name_t.get_width() // 2, rect.y + 90))
             surface.blit(desc_t, (rect.x + 10, rect.y + 130))
 
             if i == self.selected:
-                sel = self.small_font.render("✓ Vybráno", True, (100, 220, 100))
+                sel = self.small_font.render("✓ Vybráno", True, (255, 255, 255))
                 surface.blit(sel, (rect.x + rect.w // 2 - sel.get_width() // 2, rect.y + 200))
 
-        # Tlačítko potvrdit
+        # fialové tlačítko
         hover = self.confirm_btn.collidepoint(pygame.mouse.get_pos())
-        pygame.draw.rect(surface, (70, 160, 70) if hover else (50, 120, 50),
-                         self.confirm_btn, border_radius=8)
-        pygame.draw.rect(surface, (120, 220, 120), self.confirm_btn, 2, border_radius=8)
-        btn_t = self.font.render("Potvrdit  ▶", True, (255, 255, 255))
-        surface.blit(btn_t, (self.confirm_btn.x + self.confirm_btn.w // 2 - btn_t.get_width() // 2,
-                              self.confirm_btn.y + 12))
+        pygame.draw.rect(
+            surface,
+            (140, 80, 180) if hover else (110, 60, 150),
+            self.confirm_btn,
+            border_radius=8
+        )
+        pygame.draw.rect(surface, (200, 150, 255), self.confirm_btn, 2, border_radius=8)
 
-        hint = self.small_font.render("← → pro výběr,  Enter pro potvrzení", True, (120, 120, 140))
+        btn_t = self.font.render("Potvrdit", True, (255, 255, 255))
+        surface.blit(
+            btn_t,
+            (self.confirm_btn.x + self.confirm_btn.w // 2 - btn_t.get_width() // 2,
+             self.confirm_btn.y + 12)
+        )
+
+        hint = self.small_font.render("← → pro výběr, Enter pro potvrzení", True, (120, 120, 140))
         surface.blit(hint, (self.screen_w // 2 - hint.get_width() // 2, self.screen_h - 40))

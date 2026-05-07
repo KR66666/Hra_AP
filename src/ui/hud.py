@@ -1,6 +1,5 @@
 import pygame
 
-
 class HUD:
     """
     Herní HUD – zobrazuje životy, zlato, vlnu a panel věží.
@@ -19,6 +18,9 @@ class HUD:
         self.font = font
         self.small_font = pygame.font.SysFont("Arial", 15)
 
+        self.coin_img = pygame.image.load("assets/coin.png")
+        self.coin_img = pygame.transform.scale(self.coin_img, (100, 100))
+
         # Výška herní plochy = screen_h - panel
         self.game_area_h = screen_h - self.PANEL_H
 
@@ -35,7 +37,7 @@ class HUD:
         self.wave_btn = pygame.Rect(screen_w - 160, screen_h - 60, 150, 50)
 
         # Tlačítko Pauza
-        self.pause_btn = pygame.Rect(screen_w - 320, screen_h - 60, 80, 50)
+        self.pause_btn = pygame.Rect(screen_w - 290, screen_h - 40, 100, 35)
 
     def draw(self, surface, lives, gold, wave_num, total_waves, wave_active, selected_tower_idx, gold_msg=""):
         # Panel pozadí
@@ -47,10 +49,11 @@ class HUD:
         # Info: životy, zlato, vlna
         info_x = self.screen_w // 2 - 100
         life_txt = self.font.render(f"❤  {lives}", True, (220, 80, 80))
-        gold_txt = self.font.render(f"⬡  {gold}", True, (220, 190, 50))
+        gold_txt = self.font.render(f"{gold}", True, (226, 252, 53))
         wave_txt = self.font.render(f"Vlna {wave_num}/{total_waves}", True, (200, 200, 200))
         surface.blit(life_txt, (info_x, self.screen_h - self.PANEL_H + 8))
-        surface.blit(gold_txt, (info_x + 130, self.screen_h - self.PANEL_H + 8))
+        surface.blit(self.coin_img, (info_x + 110, self.screen_h - self.PANEL_H - 4))
+        surface.blit(gold_txt, (info_x + 180, self.screen_h - self.PANEL_H + 30))
         surface.blit(wave_txt, (info_x + 260, self.screen_h - self.PANEL_H + 8))
 
         # Zpráva (málo zlata apod.)
@@ -69,14 +72,14 @@ class HUD:
             surface.blit(name_s, (rect.x + 6, rect.y + 8))
             surface.blit(cost_s, (rect.x + 6, rect.y + 30))
 
-        # Tlačítko Pauza
-        pygame.draw.rect(surface, (60, 60, 80), self.pause_btn, border_radius=6)
+       # Tlačítko Pauza
+        pygame.draw.rect(surface, (60, 60, 100), self.pause_btn, border_radius=6)
         pygame.draw.rect(surface, (120, 120, 160), self.pause_btn, 2, border_radius=6)
-        p_txt = self.font.render("⏸ Pauza", True, (200, 200, 220))
-        surface.blit(p_txt, (self.pause_btn.x + 6, self.pause_btn.y + 10))
 
+        p_txt = self.font.render("⏸ Pauza", True, (200, 200, 220))
+        surface.blit(p_txt, (self.pause_btn.x + 5, self.pause_btn.y + 7))
         # Tlačítko Vlna
-        wave_color = (40, 120, 40) if not wave_active else (80, 80, 80)
+        wave_color = (26, 196, 48) if not wave_active else (80, 80, 80)
         pygame.draw.rect(surface, wave_color, self.wave_btn, border_radius=6)
         pygame.draw.rect(surface, (100, 200, 100), self.wave_btn, 2, border_radius=6)
         label = "Spustit vlnu ▶" if not wave_active else "Vlna probíhá..."

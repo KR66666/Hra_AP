@@ -32,7 +32,7 @@ class Menu:
                 self.action = "quit"
 
     def draw(self, surface):
-        surface.fill((15, 25, 15))
+        surface.fill((214, 179, 255))
 
         # Pozadí – dekorativní čáry
         for i in range(0, self.screen_w, 60):
@@ -41,22 +41,22 @@ class Menu:
             pygame.draw.line(surface, (25, 40, 25), (0, j), (self.screen_w, j), 1)
 
         # Titulek
-        title = self.title_font.render("Tower Defense", True, (255,192,203))
-        sub   = self.small_font.render("Bráň svou základnu!", True, (140, 200, 140))
+        title = self.title_font.render("Tower Defense", True, (12, 3, 23))
+        sub   = self.small_font.render("Bráň svou základnu!", True, (26, 8, 46))
         surface.blit(title, (self.screen_w // 2 - title.get_width() // 2, 120))
         surface.blit(sub,   (self.screen_w // 2 - sub.get_width() // 2,   185))
 
-        self._draw_btn(surface, self.btn_play,     "▶  Hrát")
-        self._draw_btn(surface, self.btn_settings, "⚙  Nastavení")
-        self._draw_btn(surface, self.btn_quit,     "✕  Konec")
+        self._draw_btn(surface, self.btn_play,     "Hrát")
+        self._draw_btn(surface, self.btn_settings, "Nastavení")
+        self._draw_btn(surface, self.btn_quit,     "Konec")
 
         ver = self.small_font.render("v1.0", True, (60, 80, 60))
         surface.blit(ver, (self.screen_w - 50, self.screen_h - 25))
 
     def _draw_btn(self, surface, rect, label):
         hover = rect.collidepoint(pygame.mouse.get_pos())
-        bg    = (50, 120, 50) if hover else (30, 70, 30)
-        border= (120, 220, 120) if hover else (60, 100, 60)
+        bg    = (121, 55, 196) if hover else (69, 0, 148)
+        border= (118, 80, 161) if hover else (32, 2, 66)
         pygame.draw.rect(surface, bg, rect, border_radius=10)
         pygame.draw.rect(surface, border, rect, 2, border_radius=10)
         txt = self.font.render(label, True, (230, 255, 230))
