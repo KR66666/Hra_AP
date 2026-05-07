@@ -41,7 +41,7 @@ class Menu:
             pygame.draw.line(surface, (25, 40, 25), (0, j), (self.screen_w, j), 1)
 
         # Titulek
-        title = self.title_font.render("Tower Defense", True, (100, 220, 100))
+        title = self.title_font.render("Tower Defense", True, (255,192,203))
         sub   = self.small_font.render("Bráň svou základnu!", True, (140, 200, 140))
         surface.blit(title, (self.screen_w // 2 - title.get_width() // 2, 120))
         surface.blit(sub,   (self.screen_w // 2 - sub.get_width() // 2,   185))
