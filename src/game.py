@@ -262,7 +262,7 @@ class Game:
         if self.lives <= 0:
             self.state = "gameover"
             self.game_over_screen = GameOverScreen(
-                self.screen_w, self.screen_h, self.font, won=False
+                self.screen_w, self.screen_h, self.font, won=False, message="Jsi prohrál!"
             )
             return
 

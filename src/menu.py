@@ -14,12 +14,15 @@ class Menu:
         self.title_font = pygame.font.SysFont("Arial", 52, bold=True)
         self.small_font = pygame.font.SysFont("Arial", 18)
 
-        cx = screen_w // 2
-        self.btn_play     = pygame.Rect(cx - 110, 260, 220, 55)
-        self.btn_settings = pygame.Rect(cx - 110, 330, 220, 55)
-        self.btn_quit     = pygame.Rect(cx - 110, 400, 220, 55)
+        cx = 690
+        self.btn_play     = pygame.Rect(cx - 110, 270, 220, 55)
+        self.btn_settings = pygame.Rect(cx - 110, 340, 220, 55)
+        self.btn_quit     = pygame.Rect(cx - 110, 410, 220, 55)
 
         self.action = None  # "play" | "settings" | "quit"
+
+        self.background = pygame.image.load("assets/background.jpg")
+        self.background = pygame.transform.scale(self.background, (screen_w, screen_h))
 
     def handle_event(self, event):
         self.action = None
@@ -32,19 +35,14 @@ class Menu:
                 self.action = "quit"
 
     def draw(self, surface):
-        surface.fill((214, 179, 255))
+        surface.blit(self.background, (0, 0))
 
-        # Pozadí – dekorativní čáry
-        for i in range(0, self.screen_w, 60):
-            pygame.draw.line(surface, (25, 40, 25), (i, 0), (i, self.screen_h), 1)
-        for j in range(0, self.screen_h, 60):
-            pygame.draw.line(surface, (25, 40, 25), (0, j), (self.screen_w, j), 1)
 
         # Titulek
         title = self.title_font.render("Tower Defense", True, (12, 3, 23))
         sub   = self.small_font.render("Bráň svou základnu!", True, (26, 8, 46))
-        surface.blit(title, (self.screen_w // 2 - title.get_width() // 2, 120))
-        surface.blit(sub,   (self.screen_w // 2 - sub.get_width() // 2,   185))
+        surface.blit(title, (500, 120))
+        surface.blit(sub, (620, 190))
 
         self._draw_btn(surface, self.btn_play,     "Hrát")
         self._draw_btn(surface, self.btn_settings, "Nastavení")
@@ -74,7 +72,6 @@ class PauseMenu:
         self.screen_h = screen_h
         self.font = font
         self.title_font = pygame.font.SysFont("Arial", 40, bold=True)
-
         cx = screen_w // 2
         cy = screen_h // 2
         self.btn_resume   = pygame.Rect(cx - 100, cy - 60, 200, 50)
@@ -136,7 +133,7 @@ class SettingsMenu:
         self.font = font
         self.small_font = pygame.font.SysFont("Arial", 18)
         self.title_font = pygame.font.SysFont("Arial", 36, bold=True)
-        self.settings = settings  # sdílený dict se zbytkem hry
+        self.settings = settings
         self.action = None  # "back"
 
         cx = screen_w // 2
@@ -173,7 +170,6 @@ class SettingsMenu:
         self._draw_setting(surface, "FPS limit", self.settings["fps"],
                            self.fps_minus, self.fps_plus, 360)
 
-        # Tlačítko zpět
         hover = self.btn_back.collidepoint(pygame.mouse.get_pos())
         pygame.draw.rect(surface, (50, 80, 120) if hover else (30, 50, 80), self.btn_back, border_radius=8)
         pygame.draw.rect(surface, (100, 140, 220), self.btn_back, 2, border_radius=8)
@@ -201,25 +197,25 @@ class SettingsMenu:
 class GameOverScreen:
     """Obrazovka konce hry (prohra nebo výhra)."""
 
-    def __init__(self, screen_w, screen_h, font, won: bool, has_next_level: bool = False):
+    def __init__(self, screen_w, screen_h, font, won: bool, has_next_level: bool = False, message: str = ""):
         self.screen_w = screen_w
         self.screen_h = screen_h
         self.font = font
         self.title_font = pygame.font.SysFont("Arial", 52, bold=True)
+        self.msg_font   = pygame.font.SysFont("Arial", 26)  # font pro zprávu
         self.won = won
-        self.has_next_level = has_next_level  # ← NOVÉ: je další level?
+        self.has_next_level = has_next_level
+        self.message = message  # ← zpráva pod nadpisem např. "Prohrál jsi!"
         self.action = None  # "menu" | "restart" | "next"
 
         cx = screen_w // 2
         cy = screen_h // 2
 
         if won and has_next_level:
-            # 3 tlačítka: Další level, Znovu, Menu
             self.btn_next    = pygame.Rect(cx - 110, cy - 80, 220, 55)
             self.btn_restart = pygame.Rect(cx - 110, cy - 10, 220, 55)
             self.btn_menu    = pygame.Rect(cx - 110, cy + 60, 220, 55)
         else:
-            # 2 tlačítka: Znovu, Menu
             self.btn_next    = None
             self.btn_restart = pygame.Rect(cx - 110, cy - 10, 220, 55)
             self.btn_menu    = pygame.Rect(cx - 110, cy + 60, 220, 55)
@@ -240,12 +236,17 @@ class GameOverScreen:
         surface.blit(overlay, (0, 0))
 
         color = (100, 255, 100) if self.won else (255, 80, 80)
-        label = "Výhra! 🏆" if self.won else "Prohra! 💀"
+        label = "Výhra! 🏆" if self.won else "Prohrál jsi! 💀"
         title = self.title_font.render(label, True, color)
         surface.blit(title, (self.screen_w // 2 - title.get_width() // 2,
                               self.screen_h // 2 - 150))
 
-        # Tlačítko Další level (jen při výhře s dalším levelem)
+        # Zpráva pod nadpisem
+        if self.message:
+            msg_surf = self.msg_font.render(self.message, True, (255, 200, 200))
+            surface.blit(msg_surf, (self.screen_w // 2 - msg_surf.get_width() // 2,
+                                    self.screen_h // 2 - 90))
+
         if self.btn_next:
             self._draw_btn(surface, self.btn_next, "▶▶  Další level",
                            hover_color=(50, 150, 50), base_color=(30, 100, 30),

@@ -35,7 +35,7 @@ class HUD:
 
         # Tlačítko SMAZAT – hned za tlačítky věží
         delete_x = start_x + len(self.TOWER_BTNS) * (btn_w + 8) + 10
-        self.delete_btn = pygame.Rect(delete_x, screen_h - btn_h - 10, 100, btn_h)
+        self.delete_btn = pygame.Rect(delete_x, screen_h - btn_h - 10, 80, btn_h)
 
         # Režim mazání
         self.delete_mode = False
@@ -85,7 +85,7 @@ class HUD:
         del_border = (255, 80, 80) if self.delete_mode else (140, 60, 60)
         pygame.draw.rect(surface, del_color, self.delete_btn, border_radius=6)
         pygame.draw.rect(surface, del_border, self.delete_btn, 2, border_radius=6)
-        del_label = self.small_font.render("[Smazat", True, (255, 200, 200))
+        del_label = self.small_font.render("[X] Smazat", True, (255, 200, 200))
         del_sub   = self.small_font.render("věž", True, (255, 180, 180))
         surface.blit(del_label, (self.delete_btn.x + 8, self.delete_btn.y + 8))
         surface.blit(del_sub,   (self.delete_btn.x + 28, self.delete_btn.y + 30))
