@@ -33,6 +33,13 @@ class HUD:
             rect = pygame.Rect(start_x + i * (btn_w + 8), screen_h - btn_h - 10, btn_w, btn_h)
             self.btn_rects.append(rect)
 
+        # Tlačítko SMAZAT – hned za tlačítky věží
+        delete_x = start_x + len(self.TOWER_BTNS) * (btn_w + 8) + 10
+        self.delete_btn = pygame.Rect(delete_x, screen_h - btn_h - 10, 100, btn_h)
+
+        # Režim mazání
+        self.delete_mode = False
+
         # Tlačítko "Spustit vlnu"
         self.wave_btn = pygame.Rect(screen_w - 160, screen_h - 60, 150, 50)
 
@@ -64,7 +71,8 @@ class HUD:
         # Tlačítka věží
         for i, (btn_data, rect) in enumerate(zip(self.TOWER_BTNS, self.btn_rects)):
             color = btn_data["color"]
-            border = (255, 220, 0) if i == selected_tower_idx else (80, 80, 80)
+            selected = (i == selected_tower_idx) and not self.delete_mode
+            border = (255, 220, 0) if selected else (80, 80, 80)
             pygame.draw.rect(surface, color, rect, border_radius=6)
             pygame.draw.rect(surface, border, rect, 2, border_radius=6)
             name_s = self.small_font.render(f"[{btn_data['key']}] {btn_data['name']}", True, (255, 255, 255))
@@ -72,17 +80,29 @@ class HUD:
             surface.blit(name_s, (rect.x + 6, rect.y + 8))
             surface.blit(cost_s, (rect.x + 6, rect.y + 30))
 
-       # Tlačítko Pauza
+        # Tlačítko SMAZAT
+        del_color = (160, 40, 40) if self.delete_mode else (80, 30, 30)
+        del_border = (255, 80, 80) if self.delete_mode else (140, 60, 60)
+        pygame.draw.rect(surface, del_color, self.delete_btn, border_radius=6)
+        pygame.draw.rect(surface, del_border, self.delete_btn, 2, border_radius=6)
+        del_label = self.small_font.render("[Smazat", True, (255, 200, 200))
+        del_sub   = self.small_font.render("věž", True, (255, 180, 180))
+        surface.blit(del_label, (self.delete_btn.x + 8, self.delete_btn.y + 8))
+        surface.blit(del_sub,   (self.delete_btn.x + 28, self.delete_btn.y + 30))
+        if self.delete_mode:
+            pygame.draw.rect(surface, (255, 50, 50), self.delete_btn, 3, border_radius=6)
+
+        # Tlačítko Pauza
         pygame.draw.rect(surface, (60, 60, 100), self.pause_btn, border_radius=6)
         pygame.draw.rect(surface, (120, 120, 160), self.pause_btn, 2, border_radius=6)
-
-        p_txt = self.font.render("⏸ Pauza", True, (200, 200, 220))
+        p_txt = self.font.render("Pauza", True, (200, 200, 220))
         surface.blit(p_txt, (self.pause_btn.x + 5, self.pause_btn.y + 7))
+
         # Tlačítko Vlna
         wave_color = (26, 196, 48) if not wave_active else (80, 80, 80)
         pygame.draw.rect(surface, wave_color, self.wave_btn, border_radius=6)
         pygame.draw.rect(surface, (100, 200, 100), self.wave_btn, 2, border_radius=6)
-        label = "Spustit vlnu ▶" if not wave_active else "Vlna probíhá..."
+        label = "Spustit vlnu" if not wave_active else "Vlna probíhá..."
         w_txt = self.small_font.render(label, True, (220, 255, 220))
         surface.blit(w_txt, (self.wave_btn.x + 6, self.wave_btn.y + 16))
 
@@ -91,6 +111,9 @@ class HUD:
             if rect.collidepoint(pos):
                 return i
         return None
+
+    def clicked_delete_btn(self, pos):
+        return self.delete_btn.collidepoint(pos)
 
     def clicked_wave_btn(self, pos):
         return self.wave_btn.collidepoint(pos)
