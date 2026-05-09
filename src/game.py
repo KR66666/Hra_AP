@@ -31,7 +31,7 @@ class Game:
         self._load_level()
 
         self.hud = HUD(self.screen_w, self.screen_h, self.font)
-        self.pause_menu = PauseMenu(self.screen_w, self.screen_h, self.font)
+        self.pause_menu = PauseMenu(self.screen_w, self.screen_h, self.font, skin=self.skin)
         self.game_over_screen = None
 
         self.state = "playing"
@@ -45,12 +45,17 @@ class Game:
         ld = self.level_data
         self.lives = ld["lives"]
         self.gold  = ld["start_gold"]
-        self.bg_color   = ld["bg_color"]
-        self.path_color = ld["path_color"]
+        # Tmavý skin přepíše barvy mapy
+        if self.skin == "dark":
+            self.bg_color   = (12, 10, 20)
+            self.path_color = (140, 60, 20)
+        else:
+            self.bg_color   = (240, 248, 230)
+            self.path_color = ld["path_color"]
         self.grid  = ld["grid"]
         self.rows  = ld["rows"]
         self.cols  = ld["cols"]
-        self.path_px = build_path_pixels(ld["path_cells"])
+        self.path_px = build_path_pixels(ld["path_cells"], self.screen_w, self.screen_h - 80)
         self.path_cells_set = set(map(tuple, ld["path_cells"]))
 
         self.towers:      list = []
@@ -93,6 +98,8 @@ class Game:
                 return "menu"
             if self.game_over_screen.action == "restart":
                 return f"level_{self.level_idx}"
+            if self.game_over_screen.action == "next":
+                return f"level_{self.level_idx + 1}"
             return None
 
         if self.state == "paused":
@@ -262,7 +269,9 @@ class Game:
         if self.lives <= 0:
             self.state = "gameover"
             self.game_over_screen = GameOverScreen(
-                self.screen_w, self.screen_h, self.font, won=False, message="Jsi prohrál!"
+                self.screen_w, self.screen_h, self.font, won=False,
+                message="Prohrál jsi! Nepřítel prošel do konce.",
+                skin=self.skin
             )
             return
 
@@ -295,8 +304,13 @@ class Game:
                 and not self.enemies
                 and self.lives > 0):
             self.state = "gameover"
+            from src.level import ALL_LEVELS
+            has_next = self.level_idx + 1 < len(ALL_LEVELS)
             self.game_over_screen = GameOverScreen(
-                self.screen_w, self.screen_h, self.font, won=True
+                self.screen_w, self.screen_h, self.font, won=True,
+                has_next_level=has_next,
+                message="Level dokončen! Výborně!",
+                skin=self.skin
             )
 
     # ------------------------------------------------------------------

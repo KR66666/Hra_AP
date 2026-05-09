@@ -96,6 +96,8 @@ def main():
                 if skin_selector.confirmed:
                     chosen_skin = skin_selector.chosen_skin
                     level_idx = 0
+                    menu = Menu(SCREEN_W, SCREEN_H, font, skin=chosen_skin)
+                    settings_menu = SettingsMenu(SCREEN_W, SCREEN_H, font, settings, skin=chosen_skin)
                     game = Game(screen, level_idx, settings, chosen_skin)
                     state = "game"
 
@@ -134,21 +136,18 @@ def main():
                 state = "menu"
                 game = None
             elif result and result.startswith("level_"):
-                # Restart stejného levelu
-                level_idx = int(result.split("_")[1])
-                game = Game(screen, level_idx, settings, chosen_skin)
-            else:
-                # Přechod na další level nebo menu
-                if game.state == "gameover" and game.game_over_screen:
-                    if game.game_over_screen.won and level_idx + 1 < len(ALL_LEVELS):
-                        level_idx += 1
-                        game = Game(screen, level_idx, settings, chosen_skin)
-                    else:
-                        state = "menu"
-                        game = None
+                # Restart nebo přechod na další level
+                next_idx = int(result.split("_")[1])
+                if next_idx < len(ALL_LEVELS):
+                    level_idx = next_idx
+                    game = Game(screen, level_idx, settings, chosen_skin)
                 else:
+                    # Konec hry – vyhráno všechny levely
                     state = "menu"
                     game = None
+            else:
+                state = "menu"
+                game = None
 
         pygame.display.flip()
 
