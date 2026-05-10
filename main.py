@@ -1,8 +1,3 @@
-""" main.py – vstupní bod hry Tower Defense.
-    Spuštění: python main.py
-    Kompilace do .exe (Windows):
-        pyinstaller --onefile --windowed --icon=assets/icon.ico main.py"""
-
 import pygame
 import sys
 import os
