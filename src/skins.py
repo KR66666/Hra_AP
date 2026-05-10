@@ -1,17 +1,11 @@
-"""
-src/skins.py – Definice vizuálních skinů.
-
-Každý skin definuje barvy pro:
-  - pozadí mapy, cestu, mřížku
-  - každý typ věže
-  - každý typ nepřítele
-  - UI panel
-"""
+""" src/skins.py – Definice vizuálních skinů.
+   Každý skin definuje barvy pro:
+    - pozadí mapy, cestu, mřížku
+    - každý typ věže
+    - každý typ nepřítele
+    - UI panel """
 
 SKINS = {
-    # ------------------------------------------------------------------
-    # KLASICKÝ – středověká fantasy, zelená příroda
-    # ------------------------------------------------------------------
     "default": {
         "name": "Středověk",
         "desc": "Kamenné věže, zelené lesy.",
@@ -40,9 +34,6 @@ SKINS = {
         },
     },
  
-    # ------------------------------------------------------------------
-    # TEMNÝ – post-apokalyptická krajina, oheň a rez
-    # ------------------------------------------------------------------
     "dark": {
         "name": "Apokalypsa",
         "desc": "Spálená země, ohnivé věže.",
@@ -71,9 +62,6 @@ SKINS = {
         },
     },
  
-    # ------------------------------------------------------------------
-    # NEON – cyberpunk město, žáření a neon
-    # ------------------------------------------------------------------
     "neon": {
         "name": "Cyberpunk",
         "desc": "Neonové světlo, digitální krajina.",

@@ -3,9 +3,9 @@ import pygame
 class HUD:
     PANEL_H = 80
     TOWER_BTNS = [
-    {"name": "Lučištník", "cost": 80,  "key": "1", "color": (76, 120, 80)},   # tmavě zelená
-    {"name": "Dělo",      "cost": 150, "key": "2", "color": (90, 95, 140)},   # tlumená modrofialová
-    {"name": "Mrazič",    "cost": 120, "key": "3", "color": (70, 150, 170)},  # tyrkys
+    {"name": "Lučištník", "cost": 80,  "key": "1", "color": (76, 120, 80)}, 
+    {"name": "Dělo",      "cost": 150, "key": "2", "color": (90, 95, 140)}, 
+    {"name": "Mrazič",    "cost": 120, "key": "3", "color": (70, 150, 170)}, 
 ]
 
     def __init__(self, screen_w, screen_h, font):
@@ -18,7 +18,6 @@ class HUD:
         self.coin_img = pygame.transform.scale(self.coin_img, (100, 100))
         self.game_area_h = screen_h - self.PANEL_H
 
-        # Tlačítka věží: 100x55
         btn_w, btn_h = 100, 55
         start_x = 10
         self.btn_rects = []
@@ -26,9 +25,9 @@ class HUD:
             rect = pygame.Rect(start_x + i * (btn_w + 6), screen_h - btn_h - 12, btn_w, btn_h)
             self.btn_rects.append(rect)
 
-        # Tlačítko SMAZAT – menší (55x45), posunuté výš
+    
         delete_x = start_x + len(self.TOWER_BTNS) * (btn_w + 6) + 8
-        delete_y  = screen_h - 45 - 22   # výš než ostatní tlačítka
+        delete_y  = screen_h - 45 - 22
         self.delete_btn = pygame.Rect(delete_x, delete_y, 55, 45)
 
         self.delete_mode = False
@@ -56,7 +55,6 @@ class HUD:
             surface.blit(self.small_font.render(gold_msg, True, (255, 100, 100)),
                          (info_x, self.screen_h - self.PANEL_H + 56))
 
-        # Tlačítka věží
         for i, (btn_data, rect) in enumerate(zip(self.TOWER_BTNS, self.btn_rects)):
             selected = (i == selected_tower_idx) and not self.delete_mode
             border = (255, 220, 0) if selected else (80, 80, 80)
@@ -67,7 +65,6 @@ class HUD:
             surface.blit(self.small_font.render(f"{btn_data['cost']}", True, (220,190,50)),
                          (rect.x + 5, rect.y + 28))
 
-        # Tlačítko SMAZAT – ikona nahoře, text dole
         del_color  = (140, 30, 30) if self.delete_mode else (80, 30, 30)
         del_border = (255, 90, 90) if self.delete_mode else (140, 60, 60)
         pygame.draw.rect(surface, del_color,  self.delete_btn, border_radius=6)
@@ -75,22 +72,21 @@ class HUD:
         if self.delete_mode:
             pygame.draw.rect(surface, (255, 50, 50), self.delete_btn, 3, border_radius=6)
 
-        # [X] ikona nahoře
         icon = self.small_font.render("[X]", True, (255, 200, 200))
         surface.blit(icon, (self.delete_btn.x + self.delete_btn.w // 2 - icon.get_width() // 2,
                             self.delete_btn.y + 6))
-        # "Smazat" text dole pod ikonou
+
         txt = self.tiny_font.render("Smazat", True, (255, 180, 180))
         surface.blit(txt, (self.delete_btn.x + self.delete_btn.w // 2 - txt.get_width() // 2,
                            self.delete_btn.y + 26))
 
-        # Pauza
+        #PAUZA, TLAČITKO
         pygame.draw.rect(surface, (60, 60, 100), self.pause_btn, border_radius=6)
         pygame.draw.rect(surface, (120, 120, 160), self.pause_btn, 2, border_radius=6)
         surface.blit(self.font.render("Pauza", True, (200,200,220)),
                      (self.pause_btn.x + 5, self.pause_btn.y + 7))
 
-        # Vlna
+        #TLAČITKO VLNA
         wave_color = (26, 196, 48) if not wave_active else (80, 80, 80)
         pygame.draw.rect(surface, wave_color, self.wave_btn, border_radius=6)
         pygame.draw.rect(surface, (100, 200, 100), self.wave_btn, 2, border_radius=6)

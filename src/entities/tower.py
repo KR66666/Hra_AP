@@ -5,15 +5,12 @@ from src.entities.projectile import Arrow, Cannonball, FreezeBlast
 
 
 class Tower(Entity):
-    """
-    Základní třída pro všechny věže.
-    Dědí od Entity, přidává střílení na nepřátele.
-    """
+    """Třída pro všechny věže. Dědí od Entity, přidává střílení na nepřátele."""
 
     def __init__(self, x, y, cell_size=64):
         super().__init__(x, y, cell_size, cell_size)
-        self.range = 150          # dosah v px
-        self.fire_rate = 1.0      # výstřelů za sekundu
+        self.range = 150   
+        self.fire_rate = 1.0   
         self.fire_timer = 0.0
         self.cost = 100
         self.level = 1
@@ -29,7 +26,6 @@ class Tower(Entity):
                 self.fire_timer = 0.0
 
     def _find_target(self, enemies):
-        """Najde nejblíže ke konci cesty (nejvyšší path_index)."""
         best = None
         best_idx = -1
         cx, cy = self.center
@@ -58,7 +54,6 @@ class Tower(Entity):
         surface.blit(range_surf, (cx - self.range, cy - self.range))
 
     def upgrade(self):
-        """Vylepšení věže – přepsáno v potomcích."""
         self.level += 1
 
     def get_upgrade_cost(self):
@@ -67,6 +62,7 @@ class Tower(Entity):
 
 class ArrowTower(Tower):
     """Lučištník – rychlá střelba, nízké poškození."""
+
     def __init__(self, x, y, cell_size=64):
         super().__init__(x, y, cell_size)
         self.range = 160
@@ -82,10 +78,9 @@ class ArrowTower(Tower):
     def draw(self, surface):
         super().draw(surface)
         cx, cy = self.center
-        # Luk
+    
         pygame.draw.arc(surface, (180, 120, 40),
                         (cx - 14, cy - 14, 28, 28), 0.5, 2.6, 3)
-        # Šíp
         pygame.draw.line(surface, (180, 120, 40), (cx - 8, cy), (cx + 12, cy), 2)
 
     def upgrade(self):
@@ -96,6 +91,7 @@ class ArrowTower(Tower):
 
 class CannonTower(Tower):
     """Dělo – pomalá střelba, velké poškození + splash."""
+
     def __init__(self, x, y, cell_size=64):
         super().__init__(x, y, cell_size)
         self.range = 130
@@ -113,7 +109,6 @@ class CannonTower(Tower):
         cx, cy = self.center
         pygame.draw.circle(surface, (50, 50, 120), (cx, cy), 18)
         pygame.draw.circle(surface, (100, 100, 200), (cx, cy), 18, 2)
-        # Hlaveň
         pygame.draw.rect(surface, (40, 40, 100), (cx - 4, cy - 20, 8, 20), border_radius=3)
 
     def upgrade(self):
@@ -138,7 +133,6 @@ class FreezeTower(Tower):
     def draw(self, surface):
         super().draw(surface)
         cx, cy = self.center
-        # Sněhová vločka
         for angle in range(0, 360, 60):
             rad = math.radians(angle)
             ex = cx + int(math.cos(rad) * 18)

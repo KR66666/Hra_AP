@@ -13,9 +13,7 @@ TOWER_COSTS   = [80, 150, 120]
 
 
 class Game:
-    """
-    Hlavní herní třída – řídí herní smyčku, entity, vlny a UI.
-    """
+    """Hlavní herní třída – řídí herní smyčku, entity, vlny a UI."""
 
     def __init__(self, screen: pygame.Surface, level_idx: int, settings: dict, skin: str):
         self.screen = screen
@@ -40,12 +38,11 @@ class Game:
         self.gold_msg = ""
         self.gold_msg_timer = 0.0
 
-    # ------------------------------------------------------------------
     def _load_level(self):
         ld = self.level_data
         self.lives = ld["lives"]
         self.gold  = ld["start_gold"]
-        # Tmavý skin přepíše barvy mapy
+    
         if self.skin == "dark":
             self.bg_color   = (12, 10, 20)
             self.path_color = (140, 60, 20)
@@ -68,9 +65,6 @@ class Game:
         self.spawn_queue  = []
         self.spawn_timer  = 0.0
 
-    # ------------------------------------------------------------------
-    # Hlavní smyčka
-    # ------------------------------------------------------------------
     def run(self):
         while True:
             dt = self.clock.tick(self.settings["fps"]) / 1000.0
@@ -88,9 +82,7 @@ class Game:
             self._draw()
             pygame.display.flip()
 
-    # ------------------------------------------------------------------
-    # Události
-    # ------------------------------------------------------------------
+    
     def _handle_event(self, event):
         if self.state == "gameover":
             self.game_over_screen.handle_event(event)
@@ -110,7 +102,6 @@ class Game:
                 return "menu"
             return None
 
-        # --- Klávesnice ---
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 self.state = "paused"
@@ -126,16 +117,13 @@ class Game:
             elif event.key == pygame.K_x:
                 self.hud.delete_mode = not self.hud.delete_mode
 
-        # --- Myš ---
         if event.type == pygame.MOUSEBUTTONDOWN:
             pos = event.pos
 
-            # Tlačítko smazat
             if self.hud.clicked_delete_btn(pos):
                 self.hud.delete_mode = not self.hud.delete_mode
                 return None
 
-            # Tlačítka věží – přepne věž A vypne delete mode
             clicked = self.hud.get_clicked_tower(pos)
             if clicked is not None:
                 self.selected_tower_idx = clicked
@@ -150,7 +138,6 @@ class Game:
                 self._start_next_wave()
                 return None
 
-            # Klik do herní plochy
             if pos[1] < self.screen_h - HUD.PANEL_H:
                 col = pos[0] // CELL
                 row = pos[1] // CELL
@@ -167,9 +154,6 @@ class Game:
 
         return None
 
-    # ------------------------------------------------------------------
-    # Stavba věže
-    # ------------------------------------------------------------------
     def _try_place_tower(self, col, row):
         if col >= self.cols or row >= self.rows:
             return
@@ -193,13 +177,9 @@ class Game:
         self.towers.append(cls(col * CELL, row * CELL, CELL))
         self.gold -= cost
 
-    # ------------------------------------------------------------------
-    # Smazání věže – vrátí 60 % ceny zpět
-    # ------------------------------------------------------------------
     def _try_delete_tower(self, col, row):
         for i, t in enumerate(self.towers):
             if int(t.x // CELL) == col and int(t.y // CELL) == row:
-                # Vrátit 60 % ceny
                 refund = int(t.cost * 0.6)
                 self.gold += refund
                 self.towers.pop(i)
@@ -211,9 +191,6 @@ class Game:
         self.gold_msg = msg
         self.gold_msg_timer = 2.0
 
-    # ------------------------------------------------------------------
-    # Vlny
-    # ------------------------------------------------------------------
     def _start_next_wave(self):
         if self.current_wave >= len(self.waves):
             return
@@ -244,9 +221,6 @@ class Game:
             sx, sy = self.path_px[0]
             self.enemies.append(cls(sx - 16, sy - 16, self.path_px, self.skin))
 
-    # ------------------------------------------------------------------
-    # Update
-    # ------------------------------------------------------------------
     def _update(self, dt):
         if self.gold_msg_timer > 0:
             self.gold_msg_timer -= dt
@@ -255,7 +229,6 @@ class Game:
 
         self._update_spawning(dt)
 
-        # Nepřátelé – pokud dojdou do konce = ztráta života
         for enemy in self.enemies:
             if not enemy.alive:
                 continue
@@ -265,7 +238,6 @@ class Game:
                 enemy.destroy()
                 self._show_msg(f"Nepřítel prošel! Životy: {self.lives}")
 
-        # Prohra když životy = 0
         if self.lives <= 0:
             self.state = "gameover"
             self.game_over_screen = GameOverScreen(
@@ -275,7 +247,6 @@ class Game:
             )
             return
 
-        # Odměny za zabití
         for enemy in self.enemies:
             if not enemy.alive and enemy.reward > 0:
                 self.gold += enemy.reward
@@ -283,22 +254,18 @@ class Game:
 
         self.enemies = [e for e in self.enemies if e.alive]
 
-        # Věže
         for tower in self.towers:
             tower.update(dt, self.enemies, self.projectiles)
 
-        # Střely
         for proj in self.projectiles:
             if proj.alive:
                 proj.update(dt)
         self.projectiles = [p for p in self.projectiles if p.alive]
 
-        # Vlna dokončena?
         if self.wave_active and not self.spawn_queue and not self.enemies:
             self.wave_active = False
             self.gold += 25
 
-        # Výhra
         if (self.current_wave >= len(self.waves)
                 and not self.wave_active
                 and not self.enemies
@@ -313,9 +280,6 @@ class Game:
                 skin=self.skin
             )
 
-    # ------------------------------------------------------------------
-    # Kreslení
-    # ------------------------------------------------------------------
     def _draw(self):
         self.screen.fill(self.bg_color)
         self._draw_grid()
@@ -372,10 +336,8 @@ class Game:
         surf = pygame.Surface((CELL, CELL), pygame.SRCALPHA)
 
         if self.hud.delete_mode:
-            # Červená – mazací mód
             surf.fill((255, 60, 60, 80))
             self.screen.blit(surf, rect.topleft)
-            # Zkříženě X přes pole
             pygame.draw.line(self.screen, (255, 60, 60),
                              rect.topleft, rect.bottomright, 2)
             pygame.draw.line(self.screen, (255, 60, 60),

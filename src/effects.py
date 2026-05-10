@@ -1,8 +1,3 @@
-"""
-src/effects.py – Vizuální efekty: částice, plovoucí text, exploze.
-Všechny efekty dědí od base třídy Effect.
-"""
-
 import pygame
 import math
 import random
@@ -20,7 +15,6 @@ class Effect:
 
     @property
     def progress(self) -> float:
-        """0.0 = začátek, 1.0 = konec efektu."""
         return min(1.0, self.timer / self.duration)
 
     def update(self, dt: float):
@@ -33,8 +27,6 @@ class Effect:
 
 
 class Particle(Effect):
-    """Jedna částice – lítá a mizí."""
-
     def __init__(self, x, y, color, angle, speed, size=4, duration=0.6):
         super().__init__(x, y, duration)
         self.color = color
@@ -47,7 +39,7 @@ class Particle(Effect):
         super().update(dt)
         self.x += self.vx * dt
         self.y += self.vy * dt
-        self.vy += self.gravity * dt  # gravitace
+        self.vy += self.gravity * dt
 
     def draw(self, surface):
         alpha = int(255 * (1.0 - self.progress))
@@ -59,8 +51,6 @@ class Particle(Effect):
 
 
 class Explosion(Effect):
-    """Výbuch – kruh expanduje a mizí."""
-
     def __init__(self, x, y, radius=40, color=(255, 150, 50), duration=0.4):
         super().__init__(x, y, duration)
         self.max_radius = radius
@@ -78,8 +68,6 @@ class Explosion(Effect):
 
 
 class FreezeRing(Effect):
-    """Ledový kruh při dopadu mrazivé střely."""
-
     def __init__(self, x, y, duration=0.5):
         super().__init__(x, y, duration)
 
@@ -94,8 +82,6 @@ class FreezeRing(Effect):
 
 
 class FloatingText(Effect):
-    """Plovoucí text – zlato, damage čísla."""
-
     def __init__(self, x, y, text: str, color=(255, 220, 50), font_size=20, duration=1.2):
         super().__init__(x, y, duration)
         self.text = text
@@ -115,14 +101,11 @@ class FloatingText(Effect):
 
 
 class LightningBolt(Effect):
-    """Blesková čára mezi dvěma body."""
-
     def __init__(self, x1, y1, x2, y2, color=(180, 100, 255), duration=0.15):
         super().__init__(x1, y1, duration)
         self.x2 = x2
         self.y2 = y2
         self.color = color
-        # Generuj zubatou cestu
         self.points = self._gen_points(x1, y1, x2, y2)
 
     def _gen_points(self, x1, y1, x2, y2, segments=8):
@@ -144,18 +127,12 @@ class LightningBolt(Effect):
         r, g, b = self.color[:3]
         pygame.draw.lines(surf, (r, g, b, alpha), False,
                           [(int(p[0]), int(p[1])) for p in self.points], width)
-        # Světlé jádro
         pygame.draw.lines(surf, (220, 200, 255, min(255, alpha + 60)), False,
                           [(int(p[0]), int(p[1])) for p in self.points], max(1, width - 1))
         surface.blit(surf, (0, 0))
 
 
 class EffectManager:
-    """
-    Spravuje všechny aktivní efekty.
-    Volá se z Game – centrální místo pro efekty.
-    """
-
     def __init__(self):
         self._effects: list[Effect] = []
 

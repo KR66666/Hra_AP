@@ -2,9 +2,7 @@ import pygame
 
 
 class SkinSelector:
-    """
-    Obrazovka pro výběr herního skinu před začátkem hry.
-    """
+    """Obrazovka pro výběr herního skinu před začátkem hry."""
 
     SKINS = [
         {

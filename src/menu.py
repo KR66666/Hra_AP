@@ -1,10 +1,6 @@
 import pygame
 from src.level import ALL_LEVELS
 
-
-# ---------------------------------------------------------------
-# Barvy pro každý skin
-# ---------------------------------------------------------------
 SKIN_COLORS = {
     "default": {
         "menu_bg":        (240, 248, 230),
@@ -64,8 +60,6 @@ SKIN_COLORS = {
 def get_c(skin, key):
     return SKIN_COLORS.get(skin, SKIN_COLORS["default"]).get(key, (128, 128, 128))
 
-
-# ---------------------------------------------------------------
 class Menu:
     """Hlavní menu hry."""
 
@@ -122,9 +116,8 @@ class Menu:
                            rect.y + rect.h // 2 - txt.get_height() // 2))
 
 
-# ---------------------------------------------------------------
 class PauseMenu:
-    """Pauza – zobrazuje se přes herní plochu."""
+    """Pauza Menu – zobrazuje se přes herní plochu."""
 
     def __init__(self, screen_w, screen_h, font, skin="default"):
         self.screen_w = screen_w
@@ -180,7 +173,6 @@ class PauseMenu:
                            rect.y + rect.h // 2 - txt.get_height() // 2))
 
 
-# ---------------------------------------------------------------
 class SettingsMenu:
     """Nastavení – hlasitost, FPS limit."""
 
@@ -258,7 +250,6 @@ class SettingsMenu:
         surface.blit(val_txt, (cx - val_txt.get_width() // 2, y + 2))
 
 
-# ---------------------------------------------------------------
 class GameOverScreen:
     """Obrazovka konce hry (prohra nebo výhra)."""
 

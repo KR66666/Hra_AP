@@ -1,18 +1,12 @@
-"""
-main.py – vstupní bod hry Tower Defense.
-
-Spuštění:
-    python main.py
-
-Kompilace do .exe (Windows):
-    pyinstaller --onefile --windowed --icon=assets/icon.ico main.py
-"""
+""" main.py – vstupní bod hry Tower Defense.
+    Spuštění: python main.py
+    Kompilace do .exe (Windows):
+        pyinstaller --onefile --windowed --icon=assets/icon.ico main.py"""
 
 import pygame
 import sys
 import os
 
-# Zajistí správné importy bez ohledu na to, odkud se skript spouští
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from src.menu import Menu, SettingsMenu
@@ -21,11 +15,8 @@ from src.game import Game
 from src.level import ALL_LEVELS
 
 
-# ------------------------------------------------------------------
-# Konstanty
-# ------------------------------------------------------------------
-SCREEN_W = 896   # 14 sloupců × 64
-SCREEN_H = 592   # 8 řádků × 64 + HUD 80
+SCREEN_W = 896 
+SCREEN_H = 592 
 FPS_DEFAULT = 60
 
 
@@ -40,13 +31,12 @@ def main():
     pygame.init()
     pygame.display.set_caption("Tower Defense")
 
-    # Ikona (pokud existuje a je ve správném formátu)
     icon_path = get_icon_path()
     if os.path.exists(icon_path):
         try:
             pygame.display.set_icon(pygame.image.load(icon_path))
         except pygame.error:
-            pass  # ikona není nutná, hra funguje i bez ní
+            pass
 
     screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
     font = pygame.font.SysFont("Arial", 22, bold=True)
@@ -56,7 +46,7 @@ def main():
         "fps": FPS_DEFAULT,
     }
 
-    state = "menu"          # aktuální obrazovka
+    state = "menu"  
     level_idx = 0
     chosen_skin = "default"
 
@@ -66,9 +56,6 @@ def main():
     game = None
     clock = pygame.time.Clock()
 
-    # ------------------------------------------------------------------
-    # Hlavní smyčka stavového automatu
-    # ------------------------------------------------------------------
     while True:
         clock.tick(settings["fps"])
 
@@ -77,7 +64,6 @@ def main():
                 pygame.quit()
                 sys.exit()
 
-            # ---- MENU ----
             if state == "menu":
                 menu.handle_event(event)
                 if menu.action == "play":
@@ -90,7 +76,6 @@ def main():
                     pygame.quit()
                     sys.exit()
 
-            # ---- SKIN SELECTOR ----
             elif state == "skin":
                 skin_selector.handle_event(event)
                 if skin_selector.confirmed:
@@ -101,18 +86,11 @@ def main():
                     game = Game(screen, level_idx, settings, chosen_skin)
                     state = "game"
 
-            # ---- NASTAVENÍ (z menu) ----
             elif state == "settings_from_menu":
                 settings_menu.handle_event(event)
                 if settings_menu.action == "back":
                     state = "menu"
 
-            # ---- HRA ----
-            # (game.run() blokuje – události řeší sama)
-
-        # ------------------------------------------------------------------
-        # Kreslení + přechody
-        # ------------------------------------------------------------------
         if state == "menu":
             menu.draw(screen)
 
@@ -126,7 +104,6 @@ def main():
             if game is None:
                 game = Game(screen, level_idx, settings, chosen_skin)
 
-            # Spustíme herní smyčku (blokující)
             result = game.run()
 
             if result == "quit":
@@ -136,13 +113,11 @@ def main():
                 state = "menu"
                 game = None
             elif result and result.startswith("level_"):
-                # Restart nebo přechod na další level
                 next_idx = int(result.split("_")[1])
                 if next_idx < len(ALL_LEVELS):
                     level_idx = next_idx
                     game = Game(screen, level_idx, settings, chosen_skin)
                 else:
-                    # Konec hry – vyhráno všechny levely
                     state = "menu"
                     game = None
             else:

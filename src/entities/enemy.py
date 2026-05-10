@@ -5,10 +5,7 @@ from src.entities.base_entity import Entity
 
 
 def _load_image(filename: str, size: tuple) -> pygame.Surface | None:
-    """
-    Načte obrázek ze složky assets/.
-    Pokud soubor neexistuje, vrátí None a použije se fallback kreslení.
-    """
+    """Načte obrázek ze složky assets/. Pokud soubor neexistuje, vrátí None a použije se fallback kreslení."""
     path = os.path.join("assets", filename)
     if not os.path.exists(path):
         return None
@@ -20,13 +17,7 @@ def _load_image(filename: str, size: tuple) -> pygame.Surface | None:
 
 
 class Enemy(Entity):
-    """
-    Základní třída pro všechny nepřátele.
-    Pokud existuje obrázek v assets/, použije ho.
-    Jinak kreslí fallback tvary.
-    """
-
-    IMAGE_FILE = "enemy.png"   # přepsáno v potomcích
+    IMAGE_FILE = "enemy.png" 
 
     def __init__(self, x, y, path, skin="default"):
         super().__init__(x, y, 32, 32)
@@ -40,10 +31,9 @@ class Enemy(Entity):
         self.height = 52
         self.skin = skin
         self.slow_timer = 0.0
-        self.color = (200, 50, 50)   # fallback barva
+        self.color = (200, 50, 50)
         self._anim_t = 0.0
 
-        # Načti obrázek (sdílený cache na třídě, aby se nenahrával opakovaně)
         cache_key = (self.__class__.__name__, self.width, self.height)
         if not hasattr(Enemy, "_img_cache"):
             Enemy._img_cache = {}
@@ -51,9 +41,6 @@ class Enemy(Entity):
             Enemy._img_cache[cache_key] = _load_image(self.IMAGE_FILE, (self.width, self.height))
         self._image = Enemy._img_cache[cache_key]
 
-    # ------------------------------------------------------------------
-    # Pohyb po cestě
-    # ------------------------------------------------------------------
     def update(self, dt: float):
         self._anim_t += dt
         if self.slow_timer > 0:
@@ -77,9 +64,6 @@ class Enemy(Entity):
             self.x += (dx / dist) * move
             self.y += (dy / dist) * move
 
-    # ------------------------------------------------------------------
-    # Kreslení
-    # ------------------------------------------------------------------
     def draw(self, surface: pygame.Surface):
         if self._image:
             surface.blit(self._image, (int(self.x), int(self.y)))
@@ -119,11 +103,6 @@ class Enemy(Entity):
     def reached_end(self):
         return self.path_index >= len(self.path)
 
-
-# ======================================================================
-# 5 druhů nepřátel – každý má vlastní IMAGE_FILE a fallback barvu
-# ======================================================================
-
 class BasicEnemy(Enemy):
     """Obyčejný nepřítel. Obrázek: assets/basic_enemy.png"""
     IMAGE_FILE = "basic_enemy.png"
@@ -155,7 +134,7 @@ class FastEnemy(Enemy):
         self.width = 24
         self.height = 24
         self.color = (255, 200, 0)
-        # Znovu načti obrázek ve správné velikosti
+        
         cache_key = (self.__class__.__name__, self.width, self.height)
         if cache_key not in Enemy._img_cache:
             Enemy._img_cache[cache_key] = _load_image(self.IMAGE_FILE, (self.width, self.height))
@@ -209,7 +188,6 @@ class FlyingEnemy(Enemy):
         super().update(dt)
 
     def draw(self, surface):
-        # Létající offset – sinusoidální pohyb
         fly_off = math.sin(self._anim_t * 5) * 6
         orig_y = self.y
         self.y += fly_off
@@ -221,7 +199,7 @@ class FlyingEnemy(Enemy):
 
         self._draw_hp_bar(surface)
         self._draw_slow_ring(surface)
-        self.y = orig_y  # vrať zpět
+        self.y = orig_y
 
     def _draw_fallback(self, surface):
         rect = pygame.Rect(int(self.x), int(self.y), self.width, self.height)
@@ -257,7 +235,6 @@ class BossEnemy(Enemy):
 
     def _draw_fallback(self, surface):
         pygame.draw.rect(surface, self.color, self.rect, border_radius=8)
-        # Korunka
         crown_pts = [
             (int(self.x) + 4,  int(self.y) + 4),
             (int(self.x) + 4,  int(self.y) - 10),
@@ -268,7 +245,6 @@ class BossEnemy(Enemy):
             (int(self.x) + 52, int(self.y) + 4),
         ]
         pygame.draw.lines(surface, (255, 215, 0), False, crown_pts, 3)
-        # Oči
         eye_y = int(self.y) + 20
         for ex in [int(self.x) + 16, int(self.x) + 40]:
             pygame.draw.circle(surface, (255, 255, 0), (ex, eye_y), 7)

@@ -4,10 +4,7 @@ CELL = 64
 
 
 def build_path_pixels(path_cells, screen_w=None, screen_h=None):
-    """
-    Převede buňkové souřadnice na px souřadnice.
-    První a poslední bod posunuty na okraj obrazovky.
-    """
+    """Převede buňkové souřadnice na px souřadnice.První a poslední bod posunuty na okraj obrazovky."""
     pts = [(c * CELL + CELL // 2, r * CELL + CELL // 2) for c, r in path_cells]
     if len(pts) < 2:
         return pts
@@ -28,24 +25,19 @@ def build_path_pixels(path_cells, screen_w=None, screen_h=None):
 
     return pts
 
-
-# ------------------------------------------------------------------
-# LEVEL 1 – Lesní stezka
-# cols=14, rows=8  → každý řádek gridu má přesně 14 znaků
-# ------------------------------------------------------------------
 LEVEL1 = {
     "name": "Lesní stezka",
     "rows": 8,
     "cols": 14,
     "grid": [
-        "##############",  # 14
-        "PPPP..........",  # 14
-        "###P..........",  # 14
-        "###PPPP.......",  # 14
-        "######P.......",  # 14
-        "######PPPPP...",  # 14
-        "...........P..",  # 14
-        "...........PPP",  # 14
+        "##############",  
+        "PPPP..........",  
+        "###P..........",  
+        "###PPPP.......",  
+        "######P.......",  
+        "######PPPPP...",  
+        "...........P..",  
+        "...........PPP",  
     ],
     "path_cells": [
         (0,1),(1,1),(2,1),(3,1),
@@ -69,23 +61,19 @@ LEVEL1 = {
     "path_color": (160, 120, 60),
 }
 
-# ------------------------------------------------------------------
-# LEVEL 2 – Pouštní pevnost
-# cols=14, rows=8  → každý řádek gridu má přesně 14 znaků
-# ------------------------------------------------------------------
 LEVEL2 = {
     "name": "Pouštní pevnost",
     "rows": 8,
     "cols": 14,
     "grid": [
-        "##############",  # 14
-        "PPP...........",  # 14
-        "##P...........",  # 14
-        "##PPPP........",  # 14
-        "#####P........",  # 14
-        "#####PPPP.....",  # 14
-        "########P.....",  # 14
-        "########PPPPPP",  # 14
+        "##############",  
+        "PPP...........",  
+        "##P...........",  
+        "##PPPP........",  
+        "#####P........",  
+        "#####PPPP.....",  
+        "########P.....",  
+        "########PPPPPP",  
     ],
     "path_cells": [
         (0,1),(1,1),(2,1),
